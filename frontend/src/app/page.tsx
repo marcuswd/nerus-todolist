@@ -12,15 +12,21 @@ export default function Home() {
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [filter, setFilter] = useState("all");
   const [taskEdit, setTaskEdit] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleCompleteTask = (id: number) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setTasks(updatedTasks);
+  const handleCompleteTask = async (id: number) => {
+    const completedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ completed: true }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    const { remainingTodos } = await completedTask.json();
+    setTasks(remainingTodos);
   }
 
-  const handleNewTask = (event: React.FormEvent) => {
+  const handleNewTask = async (event: React.FormEvent) => {
     event.preventDefault();   
     const newTaskItem = {
       id: tasks.length + 1,
@@ -28,13 +34,35 @@ export default function Home() {
       completed: false
     }
 
-    setTasks([...tasks, newTaskItem]);
+    const resposta = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`, {
+      method: "POST",
+      body: JSON.stringify(newTaskItem),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+
+    if (!resposta.ok) {
+      console.error("Error creating task");
+      return;
+    }
+    const data = await resposta.json();
+    setTasks((prevTasks) => [...prevTasks, data]);
+
     setNewTask("");
   }
 
-  const handleDeleteTask = (id: number) => {
-    const updatedTasks = tasks.filter((task) => task.id !== id);
-    setTasks(updatedTasks);
+  const handleDeleteTask = async (id: number) => {
+
+    const deletedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+
+    const {remainingTodos} = await deletedTask.json();
+    setTasks(remainingTodos);
   }
 
   const filterTasks = (filter: string) => {
@@ -52,12 +80,18 @@ export default function Home() {
     }
   };
 
-  const handleEditTask = (id: number) => {
-  
-    const updatedTasks = tasks.map((task) =>
-      task.id === id ? { ...task, name: editTaskTitle } : task
-    );
-    setTasks(updatedTasks);
+  const handleEditTask = async (id: number) => {
+
+    const editedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: editTaskTitle }),
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+
+    const {remainingTodos } = await editedTask.json();
+    setTasks(remainingTodos);
     setTaskEdit(0);
     setEditTaskTitle("");
   };
@@ -66,8 +100,26 @@ export default function Home() {
     setEditTaskTitle(tasks.find(task => task.id === taskEdit)?.name || "");
   }, [taskEdit, tasks]);
 
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`);
+        const data = await response.json();
+        setTasks(data);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   return (
     <main>
+      {loading && <p className="text-center text-gray-500">Loading...</p>}
       <header className="bg-gradient-to-br from-[#7e1366] to-[#b21e28]">
         <div className="container w-11/12 md:w-8/12 xl:w-6/12 mx-auto flex justify-between items-center pt-10 md:pb-15 pb-20">
           <h2 className="font-semibold text-4xl relative inline-block text-white"><span className="font-bold">Nérus</span> Todo List</h2>
@@ -92,7 +144,7 @@ export default function Home() {
 
       {tasks.length > 0 &&
         <section className="flex justify-between items-center my-6 container w-11/12 md:w-8/12 xl:w-6/12 mx-auto">
-        <p>Showing {getFilteredTasks().length} tasks of {tasks.length}</p>
+        <p>Showing {getFilteredTasks()?.length} tasks of {tasks.length}</p>
 
         <div className="flex gap-4">
           <button onClick={() => filterTasks("all")} className={`font-semibold hover:text-[#7e1366] ${filter === "all" ? "text-[#7e1366]" : "text-neutral-700"}`}>All</button>
@@ -104,8 +156,8 @@ export default function Home() {
 
       <section className="list-container container w-11/12 md:w-8/12 xl:w-6/12 mt-3 mx-auto flex gap-4 flex-col">
           {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available :(</p>}
-          {(getFilteredTasks().length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
-          {getFilteredTasks().map((task) => (
+          {(getFilteredTasks()?.length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
+          {getFilteredTasks()?.map((task) => (
             <div className="flex justify-between gap-4" key={task.id}>
               <div className="flex gap-4 items-center w-full">
 
