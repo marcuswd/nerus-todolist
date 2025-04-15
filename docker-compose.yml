@@ -1,0 +1,16 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: nerus_todolist
+      MYSQL_USER: nerus_admin
+      MYSQL_PASSWORD: 123456
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
