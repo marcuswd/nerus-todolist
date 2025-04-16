@@ -17,8 +17,8 @@ export function useTodos() {
   };
 
   const addTask = async (content: string) => {
-    const { data, error } = await TodoController.addTodo({ content });
     setLoading(true);
+    const { data, error } = await TodoController.addTodo({ content });
     if (error) {
       toast.error("Error adding task");
       return;
@@ -33,8 +33,8 @@ export function useTodos() {
   };
 
   const deleteTask = async (id: string) => {
-    const { error } = await TodoController.deleteTodo(id);
     setLoading(true);
+    const { error } = await TodoController.deleteTodo(id);
     if (error) {
       toast.error("Error deleting task");
       return;

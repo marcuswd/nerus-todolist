@@ -79,7 +79,9 @@ export default function Home() {
           </fieldset>
           <button className="bg-[#1586bf] hover:bg-[#2167be] flex items-center text-center justify-center text-white rounded p-2 mt-auto disabled:bg-gray-200 disabled:text-gray-400 gap-2" disabled={newTask.length <= 3} ><PlusIcon className="size-6" /> Add Task</button>
         </form>
-        <p className={`${newTask.length > 3 ? "text-green-500" : "text-red-500"} text-sm mt-2`}>Minimum 4 characters</p>
+        {newTask.length != 0 && newTask.length < 4 &&
+          <p className={`text-red-500 text-sm mt-2`}>Minimum 4 characters</p>
+        }
       </section>
 
       {tasks.length > 0 &&
@@ -96,7 +98,7 @@ export default function Home() {
 
       <section className="list-container container w-11/12 md:w-8/12 min-h-24 xl:w-6/12 mt-3 mx-auto flex gap-4 flex-col relative">
         {loading && <div className="absolute top-0 left-0 w-full h-full flex items-center gap-3 bg-white/75 justify-center"><Image src={"loading.svg"} width={32} height={16} alt="" />Loading...</div>}
-        {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available :</p>}
+        {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available.</p>}
         {(getFilteredTasks()?.length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
         {getFilteredTasks()?.map((task) => (
           <div className="flex justify-between gap-4" key={task.id}>
