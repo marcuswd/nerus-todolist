@@ -1,75 +1,47 @@
 'use client';
+import Image from "next/image";
 import { CheckIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react"
-import { Task } from "@/types";
+import { useCallback, useEffect, useState } from "react"
+import { ToastContainer } from "react-toastify";
+import { useTodos } from "@/hooks/useTodos";
 
 export default function Home() {
-  
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const {
+    tasks,
+    loading,
+    addTask,
+    deleteTask,
+    toggleTask,
+    editTask
+  } = useTodos();
 
   const [newTask, setNewTask] = useState("");
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [filter, setFilter] = useState("all");
-  const [taskEdit, setTaskEdit] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [taskEdit, setTaskEdit] = useState("");
 
-  const handleCompleteTask = async (id: number) => {
-    const completedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ completed: true }),
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-    const { remainingTodos } = await completedTask.json();
-    setTasks(remainingTodos);
-  }
-
-  const handleNewTask = async (event: React.FormEvent) => {
-    event.preventDefault();   
-    const newTaskItem = {
-      id: tasks.length + 1,
-      name: newTask,
-      completed: false
+  const handleNewTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newTask.length > 3) {
+      addTask(newTask);
+      setNewTask("");
     }
+  };
 
-    const resposta = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`, {
-      method: "POST",
-      body: JSON.stringify(newTaskItem),
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-
-    if (!resposta.ok) {
-      console.error("Error creating task");
-      return;
+  const handleEditTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editTaskTitle.length > 3 && taskEdit) {
+      editTask(taskEdit, editTaskTitle);
+      setTaskEdit("");
     }
-    const data = await resposta.json();
-    setTasks((prevTasks) => [...prevTasks, data]);
-
-    setNewTask("");
-  }
-
-  const handleDeleteTask = async (id: number) => {
-
-    const deletedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-
-    const {remainingTodos} = await deletedTask.json();
-    setTasks(remainingTodos);
-  }
+  };
 
   const filterTasks = (filter: string) => {
     setFilter(filter);
   };
 
-  const getFilteredTasks = () => {
+  const getFilteredTasks = useCallback(()=> {
     switch (filter) {
       case "active":
         return tasks.filter(task => !task.completed);
@@ -78,48 +50,15 @@ export default function Home() {
       default:
         return tasks;
     }
-  };
-
-  const handleEditTask = async (id: number) => {
-
-    const editedTask = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ name: editTaskTitle }),
-      headers: {
-        "Content-Type": "application/json",
-      }
-    });
-
-    const {remainingTodos } = await editedTask.json();
-    setTasks(remainingTodos);
-    setTaskEdit(0);
-    setEditTaskTitle("");
-  };
+  }, [tasks, filter]);
 
   useEffect(() => {
-    setEditTaskTitle(tasks.find(task => task.id === taskEdit)?.name || "");
+    setEditTaskTitle(tasks.find(task => task.id === taskEdit)?.content || "");
   }, [taskEdit, tasks]);
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/todos`);
-        const data = await response.json();
-        setTasks(data);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
 
   return (
     <main>
-      {loading && <p className="text-center text-gray-500">Loading...</p>}
+      <ToastContainer />
       <header className="bg-gradient-to-br from-[#7e1366] to-[#b21e28]">
         <div className="container w-11/12 md:w-8/12 xl:w-6/12 mx-auto flex justify-between items-center pt-10 md:pb-15 pb-20">
           <h2 className="font-semibold text-4xl relative inline-block text-white"><span className="font-bold">Nérus</span> Todo List</h2>
@@ -140,6 +79,7 @@ export default function Home() {
           </fieldset>
           <button className="bg-[#1586bf] hover:bg-[#2167be] flex items-center text-center justify-center text-white rounded p-2 mt-auto disabled:bg-gray-200 disabled:text-gray-400 gap-2" disabled={newTask.length <= 3} ><PlusIcon className="size-6" /> Add Task</button>
         </form>
+        <p className={`${newTask.length > 3 ? "text-green-500" : "text-red-500"} text-sm mt-2`}>Minimum 4 characters</p>
       </section>
 
       {tasks.length > 0 &&
@@ -154,41 +94,42 @@ export default function Home() {
       </section>
       }
 
-      <section className="list-container container w-11/12 md:w-8/12 xl:w-6/12 mt-3 mx-auto flex gap-4 flex-col">
-          {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available :(</p>}
-          {(getFilteredTasks()?.length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
-          {getFilteredTasks()?.map((task) => (
-            <div className="flex justify-between gap-4" key={task.id}>
-              <div className="flex gap-4 items-center w-full">
+      <section className="list-container container w-11/12 md:w-8/12 min-h-24 xl:w-6/12 mt-3 mx-auto flex gap-4 flex-col relative">
+        {loading && <div className="absolute top-0 left-0 w-full h-full flex items-center gap-3 bg-white/75 justify-center"><Image src={"loading.svg"} width={32} height={16} alt="" />Loading...</div>}
+        {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available :</p>}
+        {(getFilteredTasks()?.length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
+        {getFilteredTasks()?.map((task) => (
+          <div className="flex justify-between gap-4" key={task.id}>
+            <div className="flex gap-4 items-center w-full">
 
-                {taskEdit === task.id ? 
-                <form className="flex w-full gap-4 items-center justify-between">
-                  <input type="text" className="border border-gray-300 rounded p-2 w-full" value={editTaskTitle} onChange={(target) => setEditTaskTitle(target.currentTarget.value)} />
-                  <button className="bg-green-600 hover:bg-green-800 disabled:bg-gray-200 disabled:text-gray-400 text-md text-white rounded p-2 flex justify-around gap-2" onClick={() => handleEditTask(task.id)} disabled={editTaskTitle.length < 3}><CheckIcon className="size-6" onClick={() => handleEditTask(task.id)} /> Salvar</button>
-                  <button className="bg-[#b21e28] hover:bg-[#93232B] text-white p-2 flex justify-around gap-2" onClick={() => setTaskEdit(0)}>
-                    <XMarkIcon className="size-6" /> Cancelar
-                  </button>
-                </form> : 
-                <>
-                  <input
-                    id={task.id.toString()}
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => handleCompleteTask(task.id)}
-                  />
-                  <label htmlFor={task.id.toString()} className={`text-md ${task.completed ? "line-through" : ""}`}>{task.name}</label>
-                </>}
-                
-              </div>
-              {taskEdit != task.id && 
+              {taskEdit === task.id ? 
+              <form className="flex w-full gap-4 items-center justify-between" onSubmit={handleEditTask}>
+                <input type="text" className="border border-gray-300 rounded p-2 w-full" value={editTaskTitle} onChange={(target) => setEditTaskTitle(target.currentTarget.value)} />
+                <button className="bg-green-600 hover:bg-green-800 disabled:bg-gray-200 disabled:text-gray-400 text-md text-white rounded p-2 flex justify-around gap-2" disabled={editTaskTitle.length < 3}><CheckIcon className="size-6" /> Salvar</button>
+                <button className="bg-[#b21e28] hover:bg-[#93232B] text-white p-2 flex justify-around gap-2" onClick={() => setTaskEdit("")}>
+                  <XMarkIcon className="size-6" /> Cancelar
+                </button>
+              </form> : 
               <>
-              <div className="actions flex gap-4">
-                <button className="bg-[#1586bf] hover:bg-[#2167be] text-md text-white rounded p-2 flex items-center gap-2 disabled:bg-gray-200 disabled:text-gray-400" onClick={() => setTaskEdit(task.id)} disabled={task.completed}><PencilIcon className="size-4" /> Edit</button>
-                <button className="bg-[#b21e28] hover:bg-[#93232B] text-md text-white rounded p-2 flex items-center gap-2" onClick={() => handleDeleteTask(task.id)}><TrashIcon className="size-4" /> Delete</button>
-              </div>
+                <input
+                  id={task.id.toString()}
+                  type="checkbox"
+                  checked={task.completed}
+                  onChange={() => toggleTask(task.id, task.completed)}
+                />
+                <label htmlFor={task.id.toString()} className={`text-md ${task.completed ? "line-through" : ""}`}>{task.content}</label>
               </>}
+              
             </div>
-          ))}
+            {taskEdit != task.id && 
+            <>
+            <div className="actions flex gap-4">
+              <button className="bg-[#1586bf] hover:bg-[#2167be] text-md text-white rounded p-2 flex items-center gap-2 disabled:bg-gray-200 disabled:text-gray-400" onClick={() => setTaskEdit(task.id)} disabled={task.completed}><PencilIcon className="size-4" /> Edit</button>
+              <button className="bg-[#b21e28] hover:bg-[#93232B] text-md text-white rounded p-2 flex items-center gap-2" onClick={() => deleteTask(task.id)}><TrashIcon className="size-4" /> Delete</button>
+            </div>
+            </>}
+          </div>
+        ))}
       </section>
     </main>
   );
