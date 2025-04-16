@@ -27,8 +27,4 @@ RUN chmod +x ./start.sh
 ENV PORT=3001
 EXPOSE 3001
 
-RUN npx prisma generate
-
-RUN npx prisma migrate deploy
-
-CMD ["node", "dist/server.js"]
+CMD ["./start.sh"]
