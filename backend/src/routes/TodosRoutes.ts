@@ -18,7 +18,7 @@ interface Todo {
     /**
      * Title or description of the Todo item.
      */
-    name: string;
+    content: string;
 
     /**
      * Indicates whether the Todo item is completed.
@@ -43,7 +43,7 @@ interface TodoBody {
     /**
      * Title or description of the Todo item.
      */
-    name: string;
+    content: string;
     completed?: boolean;
 }
 
@@ -63,7 +63,7 @@ router.get("/todos", async (req: Request, res: Response) => {
 
 router.post("/todos", async (req: Request<{}, {}, TodoBody>, res: Response) => {
     const newTodo: TodoBody = {
-        name: req.body.name
+        content: req.body.content
     };
 
     const todos = await prisma.task.create({
@@ -87,13 +87,13 @@ router.delete("/todos/:id", async (req: Request<TodoParams>, res: Response) => {
 
 router.patch("/todos/:id", async (req: Request<TodoParams, {}, TodoBody>, res: Response) => {
     const { id } = req.params;
-    const { name, completed } = req.body;
+    const { content, completed } = req.body;
     const updatedTodo = await prisma.task.update({
         where: {
             id: String(id),
         },
         data: {
-            name,
+            content,
             completed: completed
         }
     });

@@ -12,7 +12,7 @@ RUN npm run build
 # Runtime
 FROM node:23-slim
 
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get update -y && apt-get install -y openssl netcat-openbsd
 
 WORKDIR /app
 
