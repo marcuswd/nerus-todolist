@@ -43,3 +43,4 @@ yarn-error.log*
 next-env.d.ts
 
 backend/src/generated/prisma/
+regras.txt

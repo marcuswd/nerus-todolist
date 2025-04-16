@@ -1,16 +1,64 @@
 services:
+  app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nerus_todolist_app
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    depends_on:
+      - api
+    networks:
+      - nerus-network
+    restart: unless-stopped
+
+  api:
+    env_file: .env
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nerus_todolist_api
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=${PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+    depends_on:
+      - db
+    networks:
+      - nerus-network
+    restart: unless-stopped
+
   db:
     image: mysql:8.0
     container_name: db
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: nerus_todolist
-      MYSQL_USER: nerus_admin
-      MYSQL_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - nerus_db_data:/var/lib/mysql
+    networks:
+      - nerus-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  nerus-network:
+    driver: bridge
 
 volumes:
-  db_data:
+  nerus_db_data:
