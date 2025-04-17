@@ -18,7 +18,7 @@ Antes de executar o projeto, certifique-se de ter instalado:
 
 - [NPM](https://nodejs.org/en/) (>= v22.11.0)
 - [Docker](https://www.docker.com/) (>= v 27.5.1)
-- [Docker Compose]()https://docs.docker.com/compose/install/
+- [Docker Compose](https://docs.docker.com/compose/install/)
 - [Git](https://git-scm.com/)
 
 ## Primeiros Passos
