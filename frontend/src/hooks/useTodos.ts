@@ -8,9 +8,10 @@ export function useTodos() {
   const [loading, setLoading] = useState(true);
 
   const fetchTasks = async () => {
-    const { data, error } = await TodoController.getTodos();
-    if (error) {
-      toast.error("Error fetching tasks");
+    const { data } = await TodoController.getTodos();
+
+    if (!data || !Array.isArray(data)) {
+      toast.error("Error fetching tasks: Invalid data");
       return;
     }
     setTasks(data);
@@ -20,16 +21,19 @@ export function useTodos() {
     setLoading(true);
     const { data, error } = await TodoController.addTodo({ content });
     if (error) {
-      toast.error("Error adding task");
+      toast.error(`Error adding task: ${error}`);
+      setLoading(false);
       return;
     }
 
+    console.log(data);
+
     if(data){
-        setTasks((prev) => [...prev, data]);
-        toast.success("Task added!");
+      setTasks((prev) => [...prev, data]);
+      toast.success("Task added!");
+      setLoading(false);
     }
 
-    setLoading(false);
   };
 
   const deleteTask = async (id: string) => {
@@ -77,7 +81,16 @@ export function useTodos() {
   };
 
   useEffect(() => {
-    fetchTasks().finally(() => setLoading(false));
+    try {
+      fetchTasks().finally(() => {
+        setLoading(false);
+      });
+    } catch (error) {
+      if(error instanceof Error) {
+        toast.error(`Error fetching tasks: ${error.message}`);
+      }
+      setLoading(false)
+    }
   }, []);
 
   return {

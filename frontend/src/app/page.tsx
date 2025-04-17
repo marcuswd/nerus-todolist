@@ -42,13 +42,15 @@ export default function Home() {
   };
 
   const getFilteredTasks = useCallback(()=> {
+    if (!tasks || !Array.isArray(tasks)) return [];
+    
     switch (filter) {
       case "active":
-        return tasks.filter(task => !task.completed);
+        return tasks.filter(task => !task.completed) || [];
       case "completed":
-        return tasks.filter(task => task.completed);
+        return tasks.filter(task => task.completed) || [];
       default:
-        return tasks;
+        return tasks || [];
     }
   }, [tasks, filter]);
 
@@ -86,21 +88,20 @@ export default function Home() {
 
       {tasks.length > 0 &&
         <section className="flex justify-between items-center my-6 container w-11/12 md:w-8/12 xl:w-6/12 mx-auto">
-        <p>Showing {getFilteredTasks()?.length} tasks of {tasks.length}</p>
-
-        <div className="flex gap-4">
-          <button onClick={() => filterTasks("all")} className={`font-semibold hover:text-[#7e1366] ${filter === "all" ? "text-[#7e1366]" : "text-neutral-700"}`}>All</button>
-          <button onClick={() => filterTasks("active") } className={`font-semibold hover:text-[#7e1366] ${filter === "active" ? "text-[#7e1366]" : "text-neutral-700"}`}>Active</button>
-          <button onClick={() => filterTasks("completed") } className={`font-semibold hover:text-[#7e1366] ${filter === "completed" ? "text-[#7e1366]" : "text-neutral-700"}`}>Completed</button>
-        </div>
-      </section>
+          <p>Showing {getFilteredTasks().length} tasks of {tasks.length}</p>
+          <div className="flex gap-4">
+            <button onClick={() => filterTasks("all")} className={`font-semibold hover:text-[#7e1366] ${filter === "all" ? "text-[#7e1366]" : "text-neutral-700"}`}>All</button>
+            <button onClick={() => filterTasks("active") } className={`font-semibold hover:text-[#7e1366] ${filter === "active" ? "text-[#7e1366]" : "text-neutral-700"}`}>Active</button>
+            <button onClick={() => filterTasks("completed") } className={`font-semibold hover:text-[#7e1366] ${filter === "completed" ? "text-[#7e1366]" : "text-neutral-700"}`}>Completed</button>
+          </div>
+        </section>
       }
 
       <section className="list-container container w-11/12 md:w-8/12 min-h-24 xl:w-6/12 mt-3 mx-auto flex gap-4 flex-col relative">
         {loading && <div className="absolute top-0 left-0 w-full h-full flex items-center gap-3 bg-white/75 justify-center"><Image src={"loading.svg"} width={32} height={16} alt="" />Loading...</div>}
         {tasks.length === 0 && <p className="text-gray-500 mt-3">No tasks available.</p>}
-        {(getFilteredTasks()?.length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
-        {getFilteredTasks()?.map((task) => (
+        {(getFilteredTasks().length === 0 && tasks.length  > 0) && <p>No tasks {filter} available</p>}
+        {getFilteredTasks().map((task) => (
           <div className="flex justify-between gap-4" key={task.id}>
             <div className="flex gap-4 items-center w-full">
 
@@ -114,12 +115,12 @@ export default function Home() {
               </form> : 
               <>
                 <input
-                  id={task.id.toString()}
+                  id={task.id}
                   type="checkbox"
                   checked={task.completed}
                   onChange={() => toggleTask(task.id, task.completed)}
                 />
-                <label htmlFor={task.id.toString()} className={`text-md ${task.completed ? "line-through" : ""}`}>{task.content}</label>
+                <label htmlFor={task.id} className={`text-md ${task.completed ? "line-through" : ""}`}>{task.content}</label>
               </>}
               
             </div>

@@ -2,7 +2,7 @@ import { TodoRepository } from "@/repository/todo"
 import { Task } from "@/types";
 
 interface ControllerGetTodosParams{
-  data: Task[]
+  data: Task[] | null
   error: string | null
 }
 
@@ -10,14 +10,19 @@ export async function getTodos() : Promise<ControllerGetTodosParams> {
   try {
     const response = await TodoRepository.getTodos();
     const todos = await response;
-    return { data: todos, error: null };
+    const { data, error } = todos;
+    if (error) {
+      return { data: null, error: error || "Unknown error" };
+    }
+    
+    return { data, error: null };
   } catch (error : unknown) {
 
     if(error instanceof Error) {
-      return { data: [], error: error.message || "Unknown error" };
+      return { data: null, error: error.message || "Unknown error" };
     }
     else {
-      return { data: [], error: "Error fetching todos" };
+      return { data: null, error: "Error fetching todos" };
     }
   }
 }
@@ -30,7 +35,12 @@ interface ControllerAddTodoParams{
 export async function addTodo(todo: { content: string }) : Promise<ControllerAddTodoParams> {
   try {
     const response = await TodoRepository.addTodo(todo);
-    return { data: response, error: null };
+    const { data, error } = response;
+    if (error) {
+      return { data: null, error: error.message || "Unknown error" };
+    }
+
+    return { data, error: null };
   } catch (error) {
     if(error instanceof Error) {
       return { data: null, error: error.message || "Unknown error" };
