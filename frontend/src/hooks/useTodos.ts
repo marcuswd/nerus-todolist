@@ -8,12 +8,18 @@ export function useTodos() {
   const [loading, setLoading] = useState(true);
 
   const fetchTasks = async () => {
-    const { data } = await TodoController.getTodos();
+    const { data, error } = await TodoController.getTodos();
 
-    if (!data || !Array.isArray(data)) {
-      toast.error("Error fetching tasks: Invalid data");
+    if (error) {
+      toast.error(error);
       return;
     }
+
+    if (!data) {
+      toast.error("No todos found!");
+      return;
+    }
+    
     setTasks(data);
   };
 
