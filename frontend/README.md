@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nerus TodoList
 
-## Getting Started
+Uma aplicação full-stack de lista de tarefas com frontend em Next.js, backend em Node.js com Express e banco de dados MySQL — tudo containerizado com Docker.
 
-First, run the development server:
+## Estrutura do Projeto
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+nerus-todolist/
+├── frontend/            # Aplicação frontend com Next.js
+├── backend/             # API backend com Node.js e Express
+├── docker-compose.yml   # Configuração do Docker Compose
+└── .env                 # Variáveis de ambiente
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pré-requisitos
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Antes de executar o projeto, certifique-se de ter instalado:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [NPM](https://nodejs.org/en/) (>= v22.11.0)
+- [Docker](https://www.docker.com/) (>= v 27.5.1)
+- [Docker Compose]()https://docs.docker.com/compose/install/
+- [Git](https://git-scm.com/)
 
-## Learn More
+## Primeiros Passos
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Clone o Repositório
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+git clone https://github.com/marcuswd/nerus-todolist.git
+cd nerus-todolist
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Configure as Variáveis de Ambiente
 
-## Deploy on Vercel
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+# Configuração da API
+PORT=3001
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Configuração do Banco de Dados
+DB_HOST=db
+DB_PORT=3306
+DB_USER=nerus_admin
+DB_PASSWORD=123456
+DB_NAME=nerus_todolist
+MYSQL_ROOT_PASSWORD=123456
+```
+
+### 3. Inicie a Aplicação com Docker
+
+```bash
+docker-compose up --build
+```
+
+Esse comando irá:
+
+- Construir as imagens Docker para o frontend e backend
+- Criar e iniciar os containers de todos os serviços
+- Subir o banco de dados MySQL
+- Estabelecer as conexões de rede necessárias
+
+### 4. Acesse a Aplicação
+
+- Frontend: http://localhost:3000  
+- API Backend: http://localhost:3001/api/todos  
+- Documentação da API (Swagger): http://localhost:3001/docs
+
+## Desenvolvimento
+
+### Execução manual
+
+#### Configuração do Ambiente
+
+1. Crie um arquivo `.env` dentro da pasta `backend`:
+
+```env
+PORT=3001
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=nerus_admin
+DB_PASSWORD=123456
+DB_NAME=nerus_todolist
+DATABASE_URL=mysql://nerus_admin:123456@localhost:3306/nerus_todolist
+```
+
+2. Crie um arquivo `.env.local` dentro da pasta `frontend`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
+
+3 Suba uma instância local do MySQL com essas credenciais ou ajuste as variáveis para refletirem seu ambiente local.
+
+#### Frontend (Next.js)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O servidor de desenvolvimento do frontend estará disponível em http://localhost:3000.
+
+#### Backend (Node.js/Express)
+
+```bash
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run dev
+```
+
+A API estará disponível em http://localhost:3001.
+
+## Arquitetura
+
+- **Frontend**: Aplicação React com Next.js  
+- **Backend**: API REST em Node.js + Express, escrita em TypeScript  
+- **Banco de Dados**: MySQL 8.0  
+- **Documentação**: Swagger UI para documentação da API  
+- **Containerização**: Docker com Docker Compose para orquestração
