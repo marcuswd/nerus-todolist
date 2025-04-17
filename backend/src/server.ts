@@ -1,6 +1,6 @@
 import express, { Request } from "express";
 import swaggerUi from "swagger-ui-express";
-import swaggerDoc from "./swagger-output.json";
+import { swaggerSpec } from "./swagger";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from 'dotenv';
@@ -19,7 +19,7 @@ app.use(cors({
   credentials: false,
 }));
 app.use("/api", TodosRoutes);
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);

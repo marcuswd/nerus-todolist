@@ -5,26 +5,56 @@ export const TodosService = {
   getAllTodos: () => TodosRepository.findAll(),
 
   getSingleTodo: async (id: string) => {
-    const allTodos = await TodosRepository.findAll();
-    const foundTodo = allTodos.find((t) => t.id === id);
-    if (!foundTodo) {
-      throw new Error("Todo not found");
+    const todo = await TodosRepository.findById(id);
+
+    if(todo.error){
+      return {error : todo.error};
     }
-    return foundTodo;
+
+    if (!todo.data) {
+      return { error: "No todos found" };
+    }
+
+    return { error: null, data: todo.data };
   },
 
-
-  createTodo: (data: TodoBody) => TodosRepository.create(data),
+  createTodo: async (data: TodoBody) => {
+    if(data.content.length < 4) {
+      return {error : "Content must be at least 4 characters long"};
+    }
+    return TodosRepository.create(data)
+  },
 
   deleteTodo: async (id: string) => {
-    const deletedTodo = await TodosRepository.delete(id);
-    const remainingTodos = await TodosRepository.findAll();
-    return { deletedTodo, remainingTodos };
+    const checkTodo = await TodosRepository.findById(id);
+
+    if (checkTodo?.error) {
+      return { error: checkTodo.error };
+    }
+
+    if (!checkTodo || !checkTodo.data) {
+      return { error: "Todo not found" };
+    }
+
+    return await TodosRepository.delete(id);
   },
 
-  updateTodo: async (id: string, data: Partial<TodoBody>) => {
-    const updatedTodo = await TodosRepository.update(id, data);
-    const remainingTodos = await TodosRepository.findAll();
-    return { updatedTodo, remainingTodos };
+  updateTodo: async (id: string, body: Partial<TodoBody>) => {
+    if (body.content && body.content.length < 4) {
+      return { error: "Content must be at least 4 characters long" };
+    }
+
+    const checkTodo = await TodosRepository.findById(id);
+
+    if (checkTodo?.error) {
+      return { error: checkTodo.error };
+    }
+
+    if (!checkTodo || !checkTodo.data) {
+      return { error: "Todo not found" };
+    }
+
+    const data = await TodosRepository.update(id, body);
+    return { error: null, data };
   },
 };

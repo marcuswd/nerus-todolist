@@ -5,10 +5,10 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "ts-node src/server.ts",
-    "dev": "nodemon src/server.ts & ts-node src/swagger.ts",
+    "dev": "nodemon src/server.ts",
     "build": "tsc",
     "serve": "ts-node dist/server.ts",
-    "swagger": "ts-node src/swagger.ts"
+    "docs": "ts-node src/swagger.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,12 +20,14 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "prisma": "^6.6.0",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.1",
+    "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.9",
     "swagger-autogen": "^2.23.7",

@@ -1,0 +1,1 @@
+export type RepositoryResponse<T> = { data: T | null; error: string | null };
